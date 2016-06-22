@@ -12,6 +12,12 @@ trait Programs
     for {
       _ <- addToCart(cartId, letters)
     } yield ()
+  
+  def updateCartProgram(cartId: String, letters: String): Storage[Unit] =
+    for {
+      old <- getCart(cartId)
+      _ <- addToCart(cartId, old.letters + letters)
+    } yield ()
 
 }
 

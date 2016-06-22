@@ -27,7 +27,6 @@ package lettershop.free
 
   sealed trait StorageADT[A]
   case class AddToCart(cartId: String, letters: String) extends StorageADT[Unit]
-  case class UpdateCart(cartId: String, letters: String) extends StorageADT[Unit]
   case class GetCart(cartId: String) extends StorageADT[Cart]
   case class AddToPrices(letter: String, price: Double) extends StorageADT[Unit]
   case object GetPrices extends StorageADT[Map[String, Price]]
