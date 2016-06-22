@@ -19,6 +19,11 @@ trait Programs
       _ <- addToCart(cartId, old.letters + letters)
     } yield ()
 
+  def addToPricesProgram(letter: String, price: Price): Storage[Unit] =
+    for {
+      _ <- addToPrices(letter, price.price)
+    } yield ()
+
 }
 
 trait Compilers {
@@ -37,6 +42,9 @@ trait Compilers {
         case GetCart(cartId) => Cart(carts.getOrElse(cartId, ""))
         case AddToCart(cartId, letters) =>
           carts += (cartId -> letters)
+          ()
+        case AddToPrices(letter, price) =>
+          prices += (letter -> price)
           ()
         case _ =>
           println("Not implemented yet")

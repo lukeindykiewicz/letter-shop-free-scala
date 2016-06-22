@@ -27,9 +27,9 @@ trait Routes {
   lazy val route =
     pathPrefix("cart") {
       getCart ~ putCart ~ postCart
-    }
+    } ~
+      putPrice
   // ~
-  //     putPrice ~
   //     checkCart ~
   //     checkoutCart ~
   //     getReceipts
@@ -66,6 +66,16 @@ trait Routes {
       path(Segment / Segment) { (cartId, letters) =>
         updateCartProgram(cartId, letters).foldMap(storageCmp)
         complete(OK)
+      }
+    }
+
+  lazy val putPrice =
+    put {
+      path("price" / Segment) { letter =>
+        entity(as[Price]) { price =>
+          addToPricesProgram(letter, price).foldMap(storageCmp)
+          complete(OK)
+        }
       }
     }
 
