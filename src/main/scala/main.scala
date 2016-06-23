@@ -33,9 +33,9 @@ trait Routes {
       getCart ~ putCart ~ postCart
     } ~
       putPrice ~
-      checkCart
-  //     checkoutCart ~
-  //     getReceipts
+      checkCart ~
+      checkoutCart ~
+      getReceipts
 
   import spray.json.DefaultJsonProtocol._
   implicit val cartJsonFormat = CartJsonSupport.CartFormats
@@ -89,6 +89,24 @@ trait Routes {
           val price = checkCartProgram(cartId, promoCode).foldMap(storageCmp)
           complete(price)
         }
+      }
+    }
+
+  lazy val checkoutCart =
+    post {
+      path("checkout" / Segment) { cartId =>
+        parameters("promo".?) { promoCode =>
+          val checkout = checkoutCartProgram(cartId, promoCode).foldMap(storageCmp)
+          complete(checkout)
+        }
+      }
+    }
+
+  lazy val getReceipts =
+    get {
+      path("receipt") {
+        val receipts = getReceiptsProgram.foldMap(storageCmp)
+        complete(receipts)
       }
     }
 

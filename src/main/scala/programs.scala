@@ -3,6 +3,7 @@ package lettershop.free
 trait Programs {
 
   import cats.free.Free
+  import java.util.UUID
 
   def getCartProgram(cartId: String)
     (implicit S: StorageConstructors[LetterShop]): Free[LetterShop, Cart] = {
@@ -40,8 +41,7 @@ trait Programs {
   def checkCartProgram(cartId: String, promoCode: Option[String])
     (implicit S: StorageConstructors[LetterShop], P: PromoConstructors[LetterShop]):
       Free[LetterShop, Price] = {
-    import S._
-    import P._
+    import S._, P._
     for {
       cart <- getCart(cartId)
       base <- basePrice(cart.letters)
@@ -57,6 +57,26 @@ trait Programs {
       promo1 <- countThreeForTwo(letters, prices)
       promo2 <- countPromoCode(promoCode)
     } yield (promo1 andThen promo2)
+  }
+
+  def checkoutCartProgram(cartId: String, promoCode: Option[String])
+    (implicit S: StorageConstructors[LetterShop], P: PromoConstructors[LetterShop]):
+      Free[LetterShop, Checkout] = {
+    import S._, P._
+    val uuid = UUID.randomUUID.toString
+    for {
+      p <- checkCartProgram(cartId, promoCode)
+      cart <- getCart(cartId)
+      _ <- addToReceipts(cartId, ReceiptHistory(p.price, uuid, cart.letters))
+      _ <- removeCart(cartId)
+    } yield Checkout(p.price, uuid)
+  }
+
+  def getReceiptsProgram(implicit S: StorageConstructors[LetterShop]): Free[LetterShop, List[ReceiptHistory]] = {
+    import S._
+    for {
+      r <- getReceipts
+    } yield r
   }
 
 }
@@ -82,6 +102,9 @@ trait Compilers {
         case AddToCart(cartId, letters) =>
           carts += (cartId -> letters)
           ()
+        case RemoveCart(cartId) =>
+          carts -= cartId
+          ()
         case AddToPrices(letter, price) =>
           prices += (letter -> Price(price))
           ()
@@ -89,9 +112,10 @@ trait Compilers {
         case GetPrices =>  prices.toMap.asInstanceOf[A]
         case GetPricesForLetters(letters) =>
           letters.toSeq.map(_.toString).map(x => x -> p(x)).toMap.asInstanceOf[A]
-        case _ =>
-          println("Not implemented yet")
-          "not implemented".asInstanceOf[A]
+        case AddToReceipts(cartId, receipt) =>
+          receipts += cartId -> receipt
+          ()
+        case GetReceipts => receipts.values.toList.asInstanceOf[A]
       }
 
     }

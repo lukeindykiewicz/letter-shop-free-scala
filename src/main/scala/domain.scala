@@ -28,10 +28,12 @@ object ReceiptHistoryJsonSupport extends SprayJsonSupport with DefaultJsonProtoc
 sealed trait StorageADT[A]
 case class AddToCart(cartId: String, letters: String) extends StorageADT[Unit]
 case class GetCart(cartId: String) extends StorageADT[Cart]
+case class RemoveCart(cartId: String) extends StorageADT[Unit]
 case class AddToPrices(letter: String, price: Double) extends StorageADT[Unit]
 case object GetPrices extends StorageADT[Map[String, Price]]
 case class GetPricesForLetters(letters: String) extends StorageADT[Map[String, Price]]
-case object GetReceipts extends StorageADT[ReceiptHistory]
+case class AddToReceipts(cartId: String, receipt: ReceiptHistory) extends StorageADT[Unit]
+case object GetReceipts extends StorageADT[List[ReceiptHistory]]
 case class BasePrice(letters: String) extends StorageADT[Double]
 
 sealed trait PriceADT[A]

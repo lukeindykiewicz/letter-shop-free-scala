@@ -16,13 +16,17 @@ package free {
       Free.inject[StorageADT, F](AddToCart(cartId, letters))
     def getCart(cartId: String): Free[F, Cart] =
       Free.inject[StorageADT, F](GetCart(cartId))
+    def removeCart(cartId: String): Free[F, Unit] =
+      Free.inject[StorageADT, F](RemoveCart(cartId))
     def addToPrices(letter: String, price: Double): Free[F, Unit] =
       Free.inject[StorageADT, F](AddToPrices(letter, price))
     def getPrices: Free[F, Map[String, Price]] =
       Free.inject[StorageADT, F](GetPrices)
     def getPricesForLetters(letters: String): Free[F, Map[String, Price]] =
       Free.inject[StorageADT, F](GetPricesForLetters(letters))
-    def getReceipts: Free[F, ReceiptHistory] =
+    def addToReceipts(cartId: String, receipt: ReceiptHistory): Free[F, Unit] =
+      Free.inject[StorageADT, F](AddToReceipts(cartId, receipt))
+    def getReceipts: Free[F, List[ReceiptHistory]] =
       Free.inject[StorageADT, F](GetReceipts)
     def basePrice(letters: String): Free[F, Double] =
       Free.inject[StorageADT, F](BasePrice(letters))
