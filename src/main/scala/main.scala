@@ -11,7 +11,8 @@ object Main
     extends App
     with Routes
     with Programs
-    with Compilers {
+    with Compilers
+    with PromotionService {
 
   implicit val system = ActorSystem("letter-shop-free")
   implicit val materializer = ActorMaterializer()
@@ -24,13 +25,15 @@ object Main
 trait Routes {
   self: Programs with Compilers =>
 
+  import StorageConstructors._
+  import PromoConstructors._
+
   lazy val route =
     pathPrefix("cart") {
       getCart ~ putCart ~ postCart
     } ~
-      putPrice
-  // ~
-  //     checkCart ~
+      putPrice ~
+      checkCart
   //     checkoutCart ~
   //     getReceipts
 
@@ -40,7 +43,7 @@ trait Routes {
   implicit val checkoutJsonFormat = CheckoutJsonSupport.CheckoutFormats
   implicit val receiptHistoryFormat = ReceiptHistoryJsonSupport.ReceiptHistoryFormats
 
-  val storageCmp = storageCompiler
+  val storageCmp = compiler
 
   lazy val getCart =
     get {
@@ -75,6 +78,16 @@ trait Routes {
         entity(as[Price]) { price =>
           addToPricesProgram(letter, price).foldMap(storageCmp)
           complete(OK)
+        }
+      }
+    }
+
+  lazy val checkCart =
+    get {
+      path("check" / Segment) { cartId =>
+        parameters("promo".?) { promoCode =>
+          val price = checkCartProgram(cartId, promoCode).foldMap(storageCmp)
+          complete(price)
         }
       }
     }
