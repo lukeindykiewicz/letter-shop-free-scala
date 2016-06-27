@@ -43,23 +43,23 @@ trait Routes {
   implicit val checkoutJsonFormat = CheckoutJsonSupport.CheckoutFormats
   implicit val receiptHistoryFormat = ReceiptHistoryJsonSupport.ReceiptHistoryFormats
 
-  val storageCmp = compiler
+  val cmp = compiler
 
   lazy val getCart =
     get {
       path(Segment) { cartId =>
-        complete( getCartProgram(cartId).foldMap(storageCmp)  )
+        complete( getCartProgram(cartId).foldMap(cmp)  )
       }
     }
 
   lazy val putCart =
     put {
       path(Segment / Segment) { (cartId, letters) =>
-        addToCartProgram(cartId, letters).foldMap(storageCmp)
+        addToCartProgram(cartId, letters).foldMap(cmp)
         complete(OK)
       } ~
       path(Segment) { cartId =>
-        addToCartProgram(cartId, "").foldMap(storageCmp)
+        addToCartProgram(cartId, "").foldMap(cmp)
         complete(OK)
       }
     }
@@ -67,7 +67,7 @@ trait Routes {
   lazy val postCart =
     post {
       path(Segment / Segment) { (cartId, letters) =>
-        updateCartProgram(cartId, letters).foldMap(storageCmp)
+        updateCartProgram(cartId, letters).foldMap(cmp)
         complete(OK)
       }
     }
@@ -76,7 +76,7 @@ trait Routes {
     put {
       path("price" / Segment) { letter =>
         entity(as[Price]) { price =>
-          addToPricesProgram(letter, price).foldMap(storageCmp)
+          addToPricesProgram(letter, price).foldMap(cmp)
           complete(OK)
         }
       }
@@ -86,7 +86,7 @@ trait Routes {
     get {
       path("check" / Segment) { cartId =>
         parameters("promo".?) { promoCode =>
-          val price = checkCartProgram(cartId, promoCode).foldMap(storageCmp)
+          val price = checkCartProgram(cartId, promoCode).foldMap(cmp)
           complete(price)
         }
       }
@@ -96,7 +96,7 @@ trait Routes {
     post {
       path("checkout" / Segment) { cartId =>
         parameters("promo".?) { promoCode =>
-          val checkout = checkoutCartProgram(cartId, promoCode).foldMap(storageCmp)
+          val checkout = checkoutCartProgram(cartId, promoCode).foldMap(cmp)
           complete(checkout)
         }
       }
@@ -105,7 +105,7 @@ trait Routes {
   lazy val getReceipts =
     get {
       path("receipt") {
-        val receipts = getReceiptsProgram.foldMap(storageCmp)
+        val receipts = getReceiptsProgram.foldMap(cmp)
         complete(receipts)
       }
     }
