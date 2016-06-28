@@ -3,12 +3,12 @@ package lettershop.free
 trait PromotionService {
 
   def threeForTwo(letters: String, p: Map[String, Price]): Double = {
-    val promoLetter = Set('a', 'X')
+    val promoLetter              = Set('a', 'X')
     val threes: Seq[Char] => Int = _.grouped(3).toSeq.filter(_.size == 3).size
     letters.toSeq
       .groupBy(x => x)
       .filter { case (c, cs) => promoLetter.contains(c) }
-      .map { case (c, cs) => c -> threes(cs) * p(c.toString).price }
+      .map { case (c, cs)    => c -> threes(cs) * p(c.toString).price }
       .values
       .sum
   }

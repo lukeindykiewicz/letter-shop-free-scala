@@ -14,3 +14,7 @@ libraryDependencies ++= {
     "org.typelevel" %% "cats" % "0.6.0" withSources() withJavadoc()
   )
 }
+
+scalafmtConfig in ThisBuild := Some(file(".scalafmt"))
+
+reformatOnCompileSettings

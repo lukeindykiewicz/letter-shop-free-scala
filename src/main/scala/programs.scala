@@ -5,53 +5,55 @@ trait Programs {
   import cats.free.Free
   import java.util.UUID
 
-  def getCartProgram(cartId: String)
-    (implicit S: StorageConstructors[LetterShop]): Free[LetterShop, Cart] = {
+  def getCartProgram(cartId: String)(
+      implicit S: StorageConstructors[LetterShop]): Free[LetterShop, Cart] = {
     import S._
     for {
       cart <- getCart(cartId)
     } yield cart
   }
 
-  def addToCartProgram(cartId: String, letters: String)
-    (implicit S: StorageConstructors[LetterShop]): Free[LetterShop, Unit] = {
+  def addToCartProgram(cartId: String, letters: String)(
+      implicit S: StorageConstructors[LetterShop]): Free[LetterShop, Unit] = {
     import S._
     for {
       _ <- addToCart(cartId, letters)
     } yield ()
   }
-  
-  def updateCartProgram(cartId: String, letters: String)
-    (implicit S: StorageConstructors[LetterShop]): Free[LetterShop, Unit] = {
+
+  def updateCartProgram(cartId: String, letters: String)(
+      implicit S: StorageConstructors[LetterShop]): Free[LetterShop, Unit] = {
     import S._
     for {
       old <- getCart(cartId)
-      _ <- addToCart(cartId, old.letters + letters)
+      _   <- addToCart(cartId, old.letters + letters)
     } yield ()
   }
 
-  def addToPricesProgram(letter: String, price: Price)
-    (implicit S: StorageConstructors[LetterShop]): Free[LetterShop, Unit] = {
+  def addToPricesProgram(letter: String, price: Price)(
+      implicit S: StorageConstructors[LetterShop]): Free[LetterShop, Unit] = {
     import S._
     for {
       _ <- addToPrices(letter, price.price)
     } yield ()
   }
 
-  def checkCartProgram(cartId: String, promoCode: Option[String])
-    (implicit S: StorageConstructors[LetterShop], P: PromoConstructors[LetterShop]):
-      Free[LetterShop, Price] = {
+  def checkCartProgram(cartId: String, promoCode: Option[String])(
+      implicit S: StorageConstructors[LetterShop],
+      P: PromoConstructors[LetterShop]): Free[LetterShop, Price] = {
     import S._, P._
     for {
-      cart <- getCart(cartId)
-      base <- basePrice(cart.letters)
+      cart   <- getCart(cartId)
+      base   <- basePrice(cart.letters)
       prices <- getPricesForLetters(cart.letters)
-      promo <- countPromotion(cart.letters, promoCode, prices)
+      promo  <- countPromotion(cart.letters, promoCode, prices)
     } yield Price(promo(base))
   }
 
-  private def countPromotion(letters: String, promoCode: Option[String], prices: Map[String, Price])
-    (implicit P: PromoConstructors[LetterShop]): Free[LetterShop, Double => Double] = {
+  private def countPromotion(letters: String,
+                             promoCode: Option[String],
+                             prices: Map[String, Price])(
+      implicit P: PromoConstructors[LetterShop]): Free[LetterShop, Double => Double] = {
     import P._
     for {
       promo1 <- countThreeForTwo(letters, prices)
@@ -59,20 +61,21 @@ trait Programs {
     } yield (promo1 andThen promo2)
   }
 
-  def checkoutCartProgram(cartId: String, promoCode: Option[String])
-    (implicit S: StorageConstructors[LetterShop], P: PromoConstructors[LetterShop]):
-      Free[LetterShop, Checkout] = {
+  def checkoutCartProgram(cartId: String, promoCode: Option[String])(
+      implicit S: StorageConstructors[LetterShop],
+      P: PromoConstructors[LetterShop]): Free[LetterShop, Checkout] = {
     import S._, P._
     val uuid = UUID.randomUUID.toString
     for {
-      p <- checkCartProgram(cartId, promoCode)
+      p    <- checkCartProgram(cartId, promoCode)
       cart <- getCart(cartId)
-      _ <- addToReceipts(cartId, ReceiptHistory(p.price, uuid, cart.letters))
-      _ <- removeCart(cartId)
+      _    <- addToReceipts(cartId, ReceiptHistory(p.price, uuid, cart.letters))
+      _    <- removeCart(cartId)
     } yield Checkout(p.price, uuid)
   }
 
-  def getReceiptsProgram(implicit S: StorageConstructors[LetterShop]): Free[LetterShop, List[ReceiptHistory]] = {
+  def getReceiptsProgram(
+      implicit S: StorageConstructors[LetterShop]): Free[LetterShop, List[ReceiptHistory]] = {
     import S._
     for {
       r <- getReceipts
@@ -81,8 +84,7 @@ trait Programs {
 
 }
 
-trait Compilers {
- self: PromotionService =>
+trait Compilers { self: PromotionService =>
 
   import cats.{Id, ~>}
 
@@ -90,8 +92,8 @@ trait Compilers {
     new (StorageADT ~> Id) {
 
       import scala.collection.concurrent.TrieMap
-      var carts: TrieMap[String, String] = TrieMap.empty
-      var prices: TrieMap[String, Price] = TrieMap.empty
+      var carts: TrieMap[String, String]            = TrieMap.empty
+      var prices: TrieMap[String, Price]            = TrieMap.empty
       var receipts: TrieMap[String, ReceiptHistory] = TrieMap.empty
 
       private val defaultPrice = Price(10)
@@ -109,7 +111,7 @@ trait Compilers {
           prices += (letter -> Price(price))
           ()
         case BasePrice(letters) => letters.map(x => p(x.toString).price).sum
-        case GetPrices =>  prices.toMap.asInstanceOf[A]
+        case GetPrices          => prices.toMap.asInstanceOf[A]
         case GetPricesForLetters(letters) =>
           letters.toSeq.map(_.toString).map(x => x -> p(x)).toMap.asInstanceOf[A]
         case AddToReceipts(cartId, receipt) =>
@@ -119,7 +121,6 @@ trait Compilers {
       }
 
     }
-
 
   def priceCompiler: PriceADT ~> Id =
     new (PriceADT ~> Id) {

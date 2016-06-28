@@ -33,7 +33,8 @@ package free {
   }
 
   object StorageConstructors {
-    implicit def storageConstructors[F[_]](implicit I: Inject[StorageADT, F]): StorageConstructors[F] =
+    implicit def storageConstructors[F[_]](
+        implicit I: Inject[StorageADT, F]): StorageConstructors[F] =
       new StorageConstructors[F]
   }
 
