@@ -33,9 +33,9 @@ package free {
   }
 
   object StorageConstructors {
-    implicit def storageConstructors[F[_]](
-        implicit I: Inject[StorageADT, F]): StorageConstructors[F] =
+    implicit def sc[F[_]](implicit I: Inject[StorageADT, F]): StorageConstructors[F] = {
       new StorageConstructors[F]
+    }
   }
 
   class PromoConstructors[F[_]](implicit I: Inject[PriceADT, F]) {
@@ -46,7 +46,7 @@ package free {
   }
 
   object PromoConstructors {
-    implicit def promoConstructors[F[_]](implicit I: Inject[PriceADT, F]): PromoConstructors[F] =
+    implicit def pc[F[_]](implicit I: Inject[PriceADT, F]): PromoConstructors[F] =
       new PromoConstructors[F]
   }
 
