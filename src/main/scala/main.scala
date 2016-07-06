@@ -18,9 +18,6 @@ object Main extends App with Routes with Programs with Compilers with PromotionS
 
 trait Routes { self: Programs with Compilers =>
 
-  import StorageConstructors._
-  import PromoConstructors._
-
   lazy val route =
     pathPrefix("cart") {
       getCart ~ putCart ~ postCart
